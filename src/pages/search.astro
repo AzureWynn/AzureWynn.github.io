@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 const blogPosts = await getCollection('blog', ({ data }) => {
   return !data.draft;
 });
@@ -170,13 +172,13 @@ const allContent = [
             <div class="flex-grow">
               ${typeBadge}
               <h3 class="text-xl font-semibold mb-2">
-                <a href="/${item.type === 'blog' ? 'posts' : 'projects'}/${item.id}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors block">
+                <a href="${BASE_URL}${item.type === 'blog' ? 'posts' : 'projects'}/${item.id}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors block">
                   ${item.title}
                 </a>
               </h3>
               <p class="text-gray-600 dark:text-gray-400 mb-3">${item.description}</p>
               <div class="flex flex-wrap gap-2 mb-3">
-                ${item.tags.map(tag => `<a href="/tags/${encodeURIComponent(tag)}" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm px-2.5 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">${tag}</a>`).join('')}
+                ${item.tags.map(tag => `<a href="${BASE_URL}tags/${encodeURIComponent(tag)}" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm px-2.5 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">${tag}</a>`).join('')}
               </div>
               <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">${new Date(item.pubDate).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
               ${ratingDisplay}

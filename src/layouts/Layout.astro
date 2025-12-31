@@ -20,6 +20,7 @@ const siteTitle = 'A.W.的博客';
 const siteDescription = '个人博客与作品集平台';
 const siteUrl = 'https://AzureWynn.github.io';
 const siteImage = '/og-image.jpg';
+const BASE_URL = import.meta.env.BASE_URL;
 ---
 
 <!DOCTYPE html>
@@ -29,7 +30,7 @@ const siteImage = '/og-image.jpg';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} - {siteTitle}</title>
     <meta name="description" content={description || siteDescription} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${BASE_URL}favicon.svg`} />
     
     <!-- SEO Meta Tags -->
     <meta property="og:site_name" content={siteTitle} />
@@ -55,20 +56,20 @@ const siteImage = '/og-image.jpg';
     <!-- Performance optimizations -->
     
     <!-- Preload critical resources -->
-    <link rel="preload" href="/images/avatar.png" as="image" type="image/png">
+    <link rel="preload" href={`${BASE_URL}images/avatar.png`} as="image" type="image/png">
   </head>
   <body class="bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-300 min-h-screen flex flex-col">
     <header class="py-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10">
       <nav class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-        <a href="/" class="text-xl font-bold hover:text-blue-600 transition-colors">A.W.</a>
+        <a href={`${BASE_URL}`} class="text-xl font-bold hover:text-blue-600 transition-colors">A.W.</a>
         <div class="flex flex-wrap justify-center gap-2 sm:gap-4">
-          <a href="/" class="hover:text-blue-600 transition-colors text-sm sm:text-base">首页</a>
-          <a href="/posts" class="hover:text-blue-600 transition-colors text-sm sm:text-base">博客</a>
-          <a href="/projects" class="hover:text-blue-600 transition-colors text-sm sm:text-base">项目</a>
-          <a href="/timeline" class="hidden sm:block hover:text-blue-600 transition-colors text-sm sm:text-base">时间线</a>
-          <a href="/tags" class="hidden sm:block hover:text-blue-600 transition-colors text-sm sm:text-base">标签</a>
-          <a href="/search" class="hover:text-blue-600 transition-colors text-sm sm:text-base">搜索</a>
-          <a href="/about" class="hover:text-blue-600 transition-colors text-sm sm:text-base">关于</a>
+          <a href={`${BASE_URL}`} class="hover:text-blue-600 transition-colors text-sm sm:text-base">首页</a>
+          <a href={`${BASE_URL}posts`} class="hover:text-blue-600 transition-colors text-sm sm:text-base">博客</a>
+          <a href={`${BASE_URL}projects`} class="hover:text-blue-600 transition-colors text-sm sm:text-base">项目</a>
+          <a href={`${BASE_URL}timeline`} class="hidden sm:block hover:text-blue-600 transition-colors text-sm sm:text-base">时间线</a>
+          <a href={`${BASE_URL}tags`} class="hidden sm:block hover:text-blue-600 transition-colors text-sm sm:text-base">标签</a>
+          <a href={`${BASE_URL}search`} class="hover:text-blue-600 transition-colors text-sm sm:text-base">搜索</a>
+          <a href={`${BASE_URL}about`} class="hover:text-blue-600 transition-colors text-sm sm:text-base">关于</a>
         </div>
         <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
           <span class="sr-only">Toggle theme</span>
