@@ -1,0 +1,79 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const allProjects = await getCollection('projects');
+const categoryProjects = allProjects.filter(project => project.data.category === 'Web 开发').sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout title="Web 开发 - 项目作品集">
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+        Web 开发项目
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400">
+        展示各种 Web 应用和网站项目
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {categoryProjects.length === 0 ? (
+        <p class="text-gray-500 dark:text-gray-400 text-center py-12 col-span-full">
+          暂无 Web 开发项目
+        </p>
+      ) : (
+        categoryProjects.map((project) => (
+          <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ring-1 ring-gray-200 dark:ring-gray-700 flex flex-col">
+            <a href={`/projects/${project.id.replace(/\.md$/, '')}`} class="flex-1 p-6 flex flex-col">
+              <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+                <time datetime={project.data.pubDate.toISOString()}>
+                  {project.data.pubDate.toLocaleDateString('zh-CN')}
+                </time>
+                {project.data.featured && (
+                  <>
+                    <span>•</span>
+                    <span class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-xs">
+                      精选
+                    </span>
+                  </>
+                )}
+              </div>
+              
+              <h2 class="text-xl font-bold mb-2 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                {project.data.title}
+              </h2>
+              
+              <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 flex-1 line-clamp-3">
+                {project.data.description}
+              </p>
+              
+              {project.data.tags.length > 0 && (
+                <div class="flex flex-wrap gap-2 mb-4">
+                  {project.data.tags.map(tag => (
+                    <span class="px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              <div class="flex gap-2 mt-auto">
+                {project.data.projectUrl && (
+                  <a href={project.data.projectUrl} target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
+                    查看项目
+                  </a>
+                )}
+                {project.data.githubUrl && (
+                  <a href={project.data.githubUrl} target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors">
+                    GitHub
+                  </a>
+                )}
+              </div>
+            </a>
+          </article>
+        ))
+      )}
+    </div>
+  </main>
+</Layout>

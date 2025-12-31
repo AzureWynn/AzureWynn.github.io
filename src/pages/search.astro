@@ -1,0 +1,192 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const blogPosts = await getCollection('blog', ({ data }) => {
+  return !data.draft;
+});
+const projects = await getCollection('projects');
+
+// Combine all content for search
+const allContent = [
+  ...blogPosts.map(post => ({
+    type: 'blog',
+    id: post.id.replace(/\.md$/, ''),
+    title: post.data.title,
+    description: post.data.description,
+    tags: post.data.tags,
+    content: post.body,
+    pubDate: post.data.pubDate,
+    rating: post.data.rating
+  })),
+  ...projects.map(project => ({
+    type: 'project',
+    id: project.id.replace(/\.md$/, ''),
+    title: project.data.title,
+    description: project.data.description,
+    tags: project.data.tags,
+    content: project.body,
+    pubDate: project.data.pubDate,
+    projectUrl: project.data.projectUrl,
+    githubUrl: project.data.githubUrl
+  }))
+];
+---
+
+<Layout title="Search" description="Search across blog posts and projects">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">搜索内容</h1>
+      <p class="text-gray-600 dark:text-gray-400 mb-8">搜索博客与项目内容</p>
+    </div>
+    
+    <div class="mb-8">
+      <input 
+        type="text" 
+        id="search-input" 
+        placeholder="Type to search blog posts and projects..." 
+        class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+    
+    <div id="search-results" class="space-y-6">
+      <p class="text-gray-600 dark:text-gray-400">Results will appear here as you type...</p>
+    </div>
+  </div>
+
+  <script define:vars={{ allContent }}>
+    // Simple search implementation without external dependencies
+    const searchData = allContent.map(item => ({
+      id: Math.random().toString(36).substr(2, 9),
+      type: item.type,
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      tags: item.tags,
+      content: item.content,
+      pubDate: new Date(item.pubDate),
+      rating: item.rating,
+      projectUrl: item.projectUrl,
+      githubUrl: item.githubUrl
+    }));
+    
+    // Simple fuzzy search function
+    function fuzzySearch(query, data) {
+      if (!query || query.length < 2) return [];
+      
+      const queryLower = query.toLowerCase();
+      const results = [];
+      
+      data.forEach(item => {
+        let score = 0;
+        const title = (item.title || '').toLowerCase();
+        const description = (item.description || '').toLowerCase();
+        const content = (item.content || '').toLowerCase();
+        const tags = (item.tags || []).join(' ').toLowerCase();
+        
+        // Title matches get highest score
+        if (title.includes(queryLower)) score += 10;
+        
+        // Description matches
+        if (description.includes(queryLower)) score += 5;
+        
+        // Content matches
+        if (content.includes(queryLower)) score += 3;
+        
+        // Tag matches
+        if (tags.includes(queryLower)) score += 7;
+        
+        // Partial matches
+        const queryWords = queryLower.split(' ');
+        queryWords.forEach(word => {
+          if (word.length > 2) {
+            if (title.includes(word)) score += 2;
+            if (description.includes(word)) score += 1;
+            if (content.includes(word)) score += 0.5;
+          }
+        });
+        
+        if (score > 0) {
+          results.push({ item, score });
+        }
+      });
+      
+      // Sort by score (highest first)
+      return results.sort((a, b) => b.score - a.score);
+    }
+    
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value;
+      
+      if (query.length < 2) {
+        searchResults.innerHTML = '<p class="text-gray-600 dark:text-gray-400">Results will appear here as you type...</p>';
+        return;
+      }
+      
+      const results = fuzzySearch(query, searchData);
+      
+      if (results.length === 0) {
+        searchResults.innerHTML = '<p class="text-gray-600 dark:text-gray-400">未找到结果，请尝试其他关键词。</p>';
+        return;
+      }
+      
+      searchResults.innerHTML = '';
+      
+      results.forEach(result => {
+        const item = result.item;
+        const element = document.createElement('div');
+        element.className = 'border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-lg transition-shadow';
+        
+        let typeBadge = '';
+        if (item.type === 'blog') {
+          typeBadge = '<span class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded mb-2">文章</span>';
+        } else {
+          typeBadge = '<span class="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded mb-2">项目</span>';
+        }
+        
+        let ratingDisplay = '';
+        if (item.rating) {
+          const stars = '★'.repeat(Math.floor(item.rating)) + '☆'.repeat(5 - Math.floor(item.rating));
+          ratingDisplay = `<div class="mt-2">${stars} <span class="ml-1">(${item.rating}/5)</span></div>`;
+        }
+        
+        let links = '';
+        if (item.type === 'project') {
+          const projectLinks = [];
+          if (item.projectUrl) {
+            projectLinks.push(`<a href="${item.projectUrl}" target="_blank" rel="noopener noreferrer" class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors mr-2">访问项目</a>`);
+          }
+          if (item.githubUrl) {
+            projectLinks.push(`<a href="${item.githubUrl}" target="_blank" rel="noopener noreferrer" class="text-sm bg-gray-800 text-white px-3 py-1 rounded hover:bg-gray-900 transition-colors">GitHub</a>`);
+          }
+          links = `<div class="mt-3">${projectLinks.join(' ')}</div>`;
+        }
+        
+        element.innerHTML = `
+          <div class="flex flex-col">
+            <div class="flex-grow">
+              ${typeBadge}
+              <h3 class="text-xl font-semibold mb-2">
+                <a href="/${item.type === 'blog' ? 'posts' : 'projects'}/${item.id}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors block">
+                  ${item.title}
+                </a>
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400 mb-3">${item.description}</p>
+              <div class="flex flex-wrap gap-2 mb-3">
+                ${item.tags.map(tag => `<a href="/tags/${encodeURIComponent(tag)}" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm px-2.5 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">${tag}</a>`).join('')}
+              </div>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">${new Date(item.pubDate).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              ${ratingDisplay}
+              ${links}
+            </div>
+          </div>
+        `;
+        
+        searchResults.appendChild(element);
+      });
+    });
+  </script>
+</Layout>

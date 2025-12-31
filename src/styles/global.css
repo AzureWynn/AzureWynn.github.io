@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: system-ui, ui-rounded, -apple-system, "Segoe UI", Roboto, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom styles */
+:root {
+  --color-primary: 14 165 233; /* #0ea5e9 */
+  --color-primary-dark: 2 132 199; /* #0284c7 */
+  --color-bg: 255 255 255; /* white */
+  --color-text: 31 41 55; /* gray-800 */
+  --color-border: 229 231 235; /* gray-200 */
+}
+
+.dark {
+  --color-bg: 17 24 39; /* gray-900 */
+  --color-text: 209 213 219; /* gray-300 */
+  --color-border: 55 65 81; /* gray-700 */
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--color-bg));
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-primary));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-primary-dark));
+}
+
+/* Focus styles for accessibility */
+.focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(var(--color-primary), 0.3);
+}
+
+/* Article content styling */
+article {
+  line-height: 1.7;
+}
+
+article h1,
+article h2,
+article h3,
+article h4,
+article h5,
+article h6 {
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+article h1 {
+  font-size: 2rem;
+  margin-top: 0;
+}
+
+article h2 {
+  font-size: 1.5rem;
+}
+
+article h3 {
+  font-size: 1.25rem;
+}
+
+article p {
+  margin-bottom: 1rem;
+}
+
+article a {
+  color: rgb(var(--color-primary));
+  text-decoration: none;
+}
+
+article a:hover {
+  text-decoration: underline;
+}
+
+article img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+article ul,
+article ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+article li {
+  margin-bottom: 0.5rem;
+}
+
+article blockquote {
+  border-left: 4px solid rgb(var(--color-primary));
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: rgb(var(--color-text));
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  article h1 {
+    font-size: 1.75rem;
+  }
+  
+  article h2 {
+    font-size: 1.375rem;
+  }
+}

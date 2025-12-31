@@ -1,0 +1,51 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog', ({ data }) => {
+  return !data.draft;
+});
+
+const posts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout title="Blog Posts" description="Latest blog posts on technology and development">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">博客文章</h1>
+      <p class="text-gray-600 dark:text-gray-400 mb-8">最新博客文章与技术分享</p>
+    </div>
+    
+    <div class="space-y-6">
+      {posts.map((post) => (
+        <article class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 ring-1 ring-gray-200 dark:ring-gray-700">
+          <h2 class="text-xl md:text-2xl font-semibold mb-2">
+            <a href={`/posts/${post.id.replace(/\.md$/, '')}`} class="hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors block">
+              {post.data.title}
+            </a>
+          </h2>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">{post.data.description}</p>
+          <div class="flex flex-wrap gap-2 mb-4">
+            {post.data.tags.map((tag) => (
+              <a 
+                href={`/tags/${encodeURIComponent(tag)}`}
+                class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs md:text-sm px-2.5 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                #{tag}
+              </a>
+            ))}
+          </div>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <time>{post.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+            <a 
+              href={`/posts/${post.id.replace(/\.md$/, '')}`} 
+              class="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+            >
+              阅读全文 →
+            </a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</Layout>

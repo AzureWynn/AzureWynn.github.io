@@ -1,0 +1,71 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const allProjects = await getCollection('projects');
+
+const projects = allProjects.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout title="项目" description="项目与作品展示">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">项目</h1>
+      <p class="text-gray-600 dark:text-gray-400 mb-8">浏览我的项目与作品集</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {projects.map((project) => (
+        <article class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 ring-1 ring-gray-200 dark:ring-gray-700 flex flex-col h-full">
+          <h2 class="text-xl font-semibold mb-2">
+            <a href={`/projects/${project.id.replace(/\.md$/, '')}`} class="hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors block">
+              {project.data.title}
+            </a>
+          </h2>
+          <p class="text-gray-600 dark:text-gray-400 mb-4 flex-grow">{project.data.description}</p>
+          <div class="flex flex-wrap gap-2 mb-4">
+            {project.data.tags.map((tag) => (
+              <a 
+                href={`/tags/${encodeURIComponent(tag)}`}
+                class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs md:text-sm px-2.5 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                #{tag}
+              </a>
+            ))}
+          </div>
+          <div class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+            <time>{project.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+          </div>
+          <div class="mt-auto flex flex-wrap gap-2">
+            <a 
+              href={`/projects/${project.id.replace(/\.md$/, '')}`} 
+              class="text-sm bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 transition-colors"
+            >
+              详情
+            </a>
+            {project.data.projectUrl && (
+              <a 
+                href={project.data.projectUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                访问
+              </a>
+            )}
+            {project.data.githubUrl && (
+              <a 
+                href={project.data.githubUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="text-sm bg-gray-800 text-white px-3 py-1.5 rounded hover:bg-gray-900 transition-colors"
+              >
+                GitHub
+              </a>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</Layout>

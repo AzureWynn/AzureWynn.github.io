@@ -1,0 +1,211 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const blogPosts = await getCollection('blog', ({ data }) => {
+    return !data.draft;
+  });
+  const projects = await getCollection('projects');
+
+  const allTags = new Set<string>();
+  blogPosts.forEach(post => post.data.tags.forEach(tag => allTags.add(tag)));
+  projects.forEach(project => project.data.tags.forEach(tag => allTags.add(tag)));
+
+  const paths = [];
+  for (const tag of allTags) {
+    const encodedTag = encodeURIComponent(tag);
+    paths.push({ params: { tag: encodedTag } });
+    
+    if (encodedTag !== tag && !tag.includes('/') && !tag.includes('?') && !tag.includes('#')) {
+      paths.push({ params: { tag: tag } });
+    }
+  }
+  
+  return paths;
+}
+
+const { tag } = Astro.params;
+const decodedTag = decodeURIComponent(tag);
+
+const blogPosts = await getCollection('blog', ({ data }) => {
+  return !data.draft && data.tags.includes(decodedTag);
+});
+const projects = await getCollection('projects', ({ data }) => {
+  return data.tags.includes(decodedTag);
+});
+
+const allContent = [
+  ...blogPosts.map(post => ({
+    ...post,
+    type: 'blog'
+  })),
+  ...projects.map(project => ({
+    ...project,
+    type: 'project'
+  }))
+].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Generate a color based on the tag name
+const colors = [
+  'from-pink-500 to-rose-500',
+  'from-purple-500 to-indigo-500',
+  'from-blue-500 to-cyan-500',
+  'from-teal-500 to-emerald-500',
+  'from-orange-500 to-amber-500',
+  'from-red-500 to-pink-500',
+  'from-indigo-500 to-purple-500',
+  'from-cyan-500 to-blue-500',
+  'from-emerald-500 to-teal-500',
+  'from-amber-500 to-orange-500',
+];
+
+const getColorFromString = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
+
+const colorClass = getColorFromString(decodedTag);
+---
+
+<Layout title={`标签: #${decodedTag}`} description={`包含标签 #${decodedTag} 的文章和项目`}>
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <div class="max-w-6xl mx-auto">
+      <div class="mb-10">
+        <a href="/tags" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mb-6 transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          返回标签列表
+        </a>
+        
+        <div class="flex items-center gap-4">
+          <div class={`w-10 h-10 rounded-lg bg-gradient-to-r ${colorClass} flex items-center justify-center shadow-sm`}>
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+              #{decodedTag}
+            </h1>
+            <div class="mt-1 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+              <span>{allContent.length} 个内容</span>
+              <span class="opacity-50">·</span>
+              <span class="inline-flex items-center gap-1">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                文章 {blogPosts.length}
+              </span>
+              <span class="opacity-50">·</span>
+              <span class="inline-flex items-center gap-1">
+                <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                </svg>
+                项目 {projects.length}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-200 dark:border-gray-800 pt-6">
+        {allContent.length > 0 ? (
+          <ul class="space-y-4">
+            {allContent.map((item) => (
+              <li key={item.id} class="group border-b border-gray-100 dark:border-gray-800 pb-4 last:border-0 last:pb-0">
+                <a 
+                  href={`/${item.type === 'blog' ? 'posts' : 'projects'}/${item.id.replace(/\.md$/, '')}`}
+                  class="block hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors -mx-3 px-3 py-2 rounded-lg"
+                >
+                  <div class="flex items-start gap-4">
+                    <div class={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${
+                      item.type === 'blog' 
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' 
+                        : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                    }`}>
+                      {item.type === 'blog' ? (
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                      ) : (
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                        </svg>
+                      )}
+                    </div>
+                    
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class={`text-xs font-medium px-2 py-1 rounded ${
+                          item.type === 'blog' 
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
+                            : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                        }`}>
+                          {item.type === 'blog' ? '文章' : '项目'}
+                        </span>
+                        <span class="text-xs text-gray-400 dark:text-gray-500">
+                          {item.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                      
+                      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {item.data.title}
+                      </h2>
+                      
+                      <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        {item.data.description}
+                      </p>
+                      
+                      {item.data.tags && item.data.tags.length > 0 && (
+                        <div class="flex flex-wrap gap-1.5">
+                          {item.data.tags.slice(0, 4).map((tag) => (
+                            <span
+                              key={tag}
+                              class={`text-xs px-2 py-0.5 rounded transition-colors ${
+                                tag === decodedTag 
+                                  ? `bg-gradient-to-r ${colorClass} text-white` 
+                                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                              }`}
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                          {item.data.tags.length > 4 && (
+                            <span class="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                              +{item.data.tags.length - 4}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div class="flex-shrink-0 self-center">
+                      <svg class="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div class="text-center py-12">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+              <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">没有找到内容</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">此标签下还没有任何文章或项目。</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</Layout>

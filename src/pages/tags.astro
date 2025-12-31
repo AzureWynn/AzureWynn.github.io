@@ -1,0 +1,109 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const blogPosts = await getCollection('blog', ({ data }) => {
+  return !data.draft;
+});
+const projects = await getCollection('projects');
+
+const allTags = new Set<string>();
+blogPosts.forEach(post => post.data.tags.forEach(tag => allTags.add(tag)));
+projects.forEach(project => project.data.tags.forEach(tag => allTags.add(tag)));
+
+const tags = Array.from(allTags).sort();
+
+const colors = [
+  'from-pink-500 to-rose-500',
+  'from-purple-500 to-indigo-500',
+  'from-blue-500 to-cyan-500',
+  'from-teal-500 to-emerald-500',
+  'from-orange-500 to-amber-500',
+  'from-red-500 to-pink-500',
+  'from-indigo-500 to-purple-500',
+  'from-cyan-500 to-blue-500',
+  'from-emerald-500 to-teal-500',
+  'from-amber-500 to-orange-500',
+];
+
+const getColor = (index: number) => colors[index % colors.length];
+---
+
+<Layout title="Tags" description="Browse content by tags">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">标签</h1>
+    <p class="text-gray-600 dark:text-gray-400 mb-8">
+      探索 {tags.length} 个标签，发现更多精彩内容
+    </p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+      {tags.map((tag, index) => {
+        const taggedPosts = blogPosts.filter(post => post.data.tags.includes(tag));
+        const taggedProjects = projects.filter(project => project.data.tags.includes(tag));
+        const totalCount = taggedPosts.length + taggedProjects.length;
+        const colorClass = getColor(index);
+        const latestItem = taggedPosts[0]
+          ? { title: taggedPosts[0].data.title, type: '文章', href: `/posts/${taggedPosts[0].id.replace(/\.md$/, '')}`, color: 'text-blue-600 dark:text-blue-400' }
+          : taggedProjects[0]
+          ? { title: taggedProjects[0].data.title, type: '项目', href: `/projects/${taggedProjects[0].id.replace(/\.md$/, '')}`, color: 'text-purple-600 dark:text-purple-400' }
+          : null;
+
+        return (
+          <a 
+            href={`/tags/${encodeURIComponent(tag)}`} 
+            class="group block"
+          >
+            <div class="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 ring-1 ring-gray-200 dark:ring-gray-700 h-full">
+              <div class={`absolute inset-0 bg-gradient-to-br ${colorClass} opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-300`}></div>
+              <div class="relative p-6 flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                  <div class={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${colorClass} text-white`}>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                    <span class="font-semibold text-sm">#{tag}</span>
+                  </div>
+                  <span class={`inline-flex items-center justify-center min-w-9 h-9 px-2 rounded-full bg-gradient-to-r ${colorClass} text-white font-bold text-sm`}>
+                    {totalCount}
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                  <div class="flex items-center gap-1">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    <span>文章 {taggedPosts.length}</span>
+                  </div>
+                  <span class="opacity-50">·</span>
+                  <div class="flex items-center gap-1">
+                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
+                    <span>项目 {taggedProjects.length}</span>
+                  </div>
+                </div>
+
+                {latestItem && (
+                  <div class="text-sm">
+                    <span class="text-gray-500 dark:text-gray-400">最近：</span>
+                    <span class={`font-medium ${latestItem.color} hover:underline`}>
+                      {latestItem.title}
+                    </span>
+                  </div>
+                )}
+
+                <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                  <span class="text-xs text-gray-500 dark:text-gray-400">查看详情</span>
+                  <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  </main>
+</Layout>

@@ -1,0 +1,134 @@
+---
+import '../styles/global.css';
+export interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+  ogImage?: string;
+  type?: string;
+}
+
+const {
+  title = 'Tech Blog & Portfolio',
+  description = 'A high-performance tech blog and portfolio platform',
+  canonical = 'https://AzureWynn.github.io',
+  ogImage = '/og-image.jpg',
+  type = 'website'
+}: Props = Astro.props;
+
+const siteTitle = 'A.W.的博客';
+const siteDescription = '个人博客与作品集平台';
+const siteUrl = 'https://AzureWynn.github.io';
+const siteImage = '/og-image.jpg';
+---
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} - {siteTitle}</title>
+    <meta name="description" content={description || siteDescription} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+    <!-- SEO Meta Tags -->
+    <meta property="og:site_name" content={siteTitle} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description || siteDescription} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage || siteImage} />
+    <meta property="og:image:alt" content={`Image for ${title}`} />
+    
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description || siteDescription} />
+    <meta name="twitter:image" content={ogImage || siteImage} />
+    <meta name="twitter:image:alt" content={`Image for ${title}`} />
+    
+    <!-- Additional SEO tags -->
+    <link rel="canonical" href={canonical} />
+    <meta name="author" content="A.W." />
+    <meta name="keywords" content="tech blog, portfolio, web development, programming, software engineering" />
+    <meta name="theme-color" content="#0ea5e9" />
+    
+    <!-- Performance optimizations -->
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/images/avatar.png" as="image" type="image/png">
+  </head>
+  <body class="bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-300 min-h-screen flex flex-col">
+    <header class="py-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10">
+      <nav class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <a href="/" class="text-xl font-bold hover:text-blue-600 transition-colors">A.W.</a>
+        <div class="flex flex-wrap justify-center gap-2 sm:gap-4">
+          <a href="/" class="hover:text-blue-600 transition-colors text-sm sm:text-base">首页</a>
+          <a href="/posts" class="hover:text-blue-600 transition-colors text-sm sm:text-base">博客</a>
+          <a href="/projects" class="hover:text-blue-600 transition-colors text-sm sm:text-base">项目</a>
+          <a href="/timeline" class="hidden sm:block hover:text-blue-600 transition-colors text-sm sm:text-base">时间线</a>
+          <a href="/tags" class="hidden sm:block hover:text-blue-600 transition-colors text-sm sm:text-base">标签</a>
+          <a href="/search" class="hover:text-blue-600 transition-colors text-sm sm:text-base">搜索</a>
+          <a href="/about" class="hover:text-blue-600 transition-colors text-sm sm:text-base">关于</a>
+        </div>
+        <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+          <span class="sr-only">Toggle theme</span>
+          <svg id="theme-icon-sun" class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+          </svg>
+          <svg id="theme-icon-moon" class="w-5 h-5 dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+          </svg>
+        </button>
+      </nav>
+    </header>
+    
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-6xl">
+      <slot />
+    </main>
+    
+    <footer class="py-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
+      <div class="container mx-auto px-4 max-w-6xl text-center text-gray-600 dark:text-gray-400 text-sm">
+        <p>© {new Date().getFullYear()} AzureWynn的技术博客. 保留所有权利.</p>
+      </div>
+    </footer>
+    
+    <!-- Theme Toggle Script -->
+    <script>
+      (function() {
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIconSun = document.getElementById('theme-icon-sun');
+        const themeIconMoon = document.getElementById('theme-icon-moon');
+        
+        // Check for saved theme or default to system preference
+        const currentTheme = localStorage.getItem('theme') || 
+          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        // Apply the theme
+        if (currentTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+          themeIconSun.classList.remove('hidden');
+          themeIconMoon.classList.add('hidden');
+        } else {
+          document.documentElement.classList.remove('dark');
+          themeIconSun.classList.add('hidden');
+          themeIconMoon.classList.remove('hidden');
+        }
+        
+        // Toggle theme when button is clicked
+        themeToggle.addEventListener('click', function() {
+          if (document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+            themeIconSun.classList.add('hidden');
+            themeIconMoon.classList.remove('hidden');
+          } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+            themeIconSun.classList.remove('hidden');
+            themeIconMoon.classList.add('hidden');
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
