@@ -1,0 +1,294 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>从 GPIO 到 MQTT：一次 ESP32-S3 网络与 IoT 功能实践 - A.W. — Backend Engineer</title><meta name="description" content="以 ESP32-S3 为核心的完整 IoT 链路实践：GPIO 呼吸灯与触摸、Wi-Fi 配网与 NAPT 转发、设备端 Web 配置入口、自实现 MQTT 客户端，直到 Go 后端订阅温度数据。"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="alternate" type="application/rss+xml" title="A.W. — Backend Engineer" href="https://azurewynn.github.io/rss.xml"><!-- SEO Meta Tags --><meta property="og:site_name" content="A.W. — Backend Engineer"><meta property="og:title" content="从 GPIO 到 MQTT：一次 ESP32-S3 网络与 IoT 功能实践"><meta property="og:description" content="以 ESP32-S3 为核心的完整 IoT 链路实践：GPIO 呼吸灯与触摸、Wi-Fi 配网与 NAPT 转发、设备端 Web 配置入口、自实现 MQTT 客户端，直到 Go 后端订阅温度数据。"><meta property="og:type" content="article"><meta property="og:url" content="https://azurewynn.github.io"><meta property="og:image" content="https://azurewynn.github.io/images/og-image.png"><meta property="og:image:alt" content="Image for 从 GPIO 到 MQTT：一次 ESP32-S3 网络与 IoT 功能实践"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="从 GPIO 到 MQTT：一次 ESP32-S3 网络与 IoT 功能实践"><meta name="twitter:description" content="以 ESP32-S3 为核心的完整 IoT 链路实践：GPIO 呼吸灯与触摸、Wi-Fi 配网与 NAPT 转发、设备端 Web 配置入口、自实现 MQTT 客户端，直到 Go 后端订阅温度数据。"><meta name="twitter:image" content="/images/og-image.png"><meta name="twitter:image:alt" content="Image for 从 GPIO 到 MQTT：一次 ESP32-S3 网络与 IoT 功能实践"><!-- Additional SEO tags --><link rel="canonical" href="https://azurewynn.github.io"><meta name="author" content="A.W."><meta name="keywords" content="backend engineer, Node.js, TypeScript, payment systems, commerce, DDD, integrations, remote contractor"><meta name="theme-color" content="#0ea5e9"><!-- Performance optimizations --><link rel="stylesheet" href="/_astro/about.Cx4e4yil.css"><script type="module" src="/_astro/page.D1uwR3nK.js"></script></head> <body class="bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-300 min-h-screen flex flex-col"> <header class="py-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10"> <nav class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4"> <a href="/" class="text-xl font-bold hover:text-blue-600 transition-colors">A.W.</a> <div class="flex flex-wrap justify-center gap-2 sm:gap-4"> <a href="/" class="hover:text-blue-600 transition-colors text-sm sm:text-base">Home</a> <a href="/experience" class="hover:text-blue-600 transition-colors text-sm sm:text-base">Experience</a> <a href="/projects" class="hover:text-blue-600 transition-colors text-sm sm:text-base">Projects</a> <a href="/posts" class="hidden sm:block hover:text-blue-600 transition-colors text-sm sm:text-base">Writing</a> <a href="/timeline" class="hover:text-blue-600 transition-colors text-sm sm:text-base">Timeline</a> <a href="/about" class="hover:text-blue-600 transition-colors text-sm sm:text-base">About</a> <a href="/contact" class="hover:text-blue-600 transition-colors text-sm sm:text-base">Contact</a> </div> <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"> <span class="sr-only">Toggle theme</span> <svg id="theme-icon-sun" class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"> <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path> </svg> <svg id="theme-icon-moon" class="w-5 h-5 dark:hidden" fill="currentColor" viewBox="0 0 20 20"> <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path> </svg> </button> </nav> </header> <main class="flex-grow container mx-auto px-4 py-8 max-w-6xl">  <article> <header class="mb-8 max-w-3xl mx-auto"> <h1 class="text-4xl md:text-5xl font-bold mb-4">从 GPIO 到 MQTT：一次 ESP32-S3 网络与 IoT 功能实践</h1> <div class="flex flex-wrap items-center gap-4 text-gray-600 dark:text-gray-400 text-sm"> <time datetime="2026-11-27T00:00:00.000Z"> November 27, 2026 </time> </div> <div class="flex flex-wrap gap-2 mt-4"> <a href="/tags/ESP32-S3" class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"> ESP32-S3 </a><a href="/tags/IoT" class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"> IoT </a><a href="/tags/MQTT" class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"> MQTT </a><a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F" class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"> 嵌入式 </a><a href="/tags/Wi-Fi" class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"> Wi-Fi </a><a href="/tags/FreeRTOS" class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"> FreeRTOS </a> </div> </header> <div class="prose prose-lg dark:prose-invert max-w-3xl mx-auto"> <h2 id="tldr-english">TL;DR (English)</h2>
+<p>I built a <strong>complete IoT data pipeline</strong> around the ESP32-S3-DevKitC-1 (N16R8): sensor sampling → device networking → on-device web UI → MQTT telemetry → a Go backend service. It is not four separate demos — it is <strong>one combined firmware</strong> running six FreeRTOS tasks across both cores, plus a Go service that subscribes to the device in real time.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>Temperature Sensor ──▶ ESP32-S3 ──▶ MQTT Broker ──▶ Backend Service</span></span>
+<span class="line"><span>   DHT11 reads temp    collects data &#x26; builds MQTT messages   publishes &#x26; routes   subscribes &#x26; receives</span></span></code></pre>
+<p>Highlights:</p>
+<ul>
+<li><strong>Self-implemented protocols</strong>: DHT11 single-bus timing (bit-level read + checksum) and a full MQTT 3.1.1 client on raw <code>WiFiClient</code> — no PubSubClient.</li>
+<li><strong>NAPT traffic forwarding</strong>: the official SDK lacks NAPT, so I rebuilt the esp32-arduino SDK via <code>esp32-arduino-lib-builder</code> to enable <code>CONFIG_LWIP_NAPT</code>.</li>
+<li><strong>Wi-Fi provisioning</strong>: AP-mode setup page + SmartConfig, with configuration persisted in SPIFFS.</li>
+<li><strong>Two-way MQTT</strong>: QoS1 status telemetry (temp/humidity/Wi-Fi/heap) every 10s + a command channel (<code>led:*</code>, <code>ping</code>, <code>restart</code>) for instant control.</li>
+<li><strong>Go backend</strong>: layered service — MQTT subscriber, JSONL persistence, web/SSE console, and command publishing.</li>
+</ul>
+<p>Repo:</p>
+<a href="https://github.com/AzureWynn/esp32-s3-networking-lab" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 no-underline hover:no-underline bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+esp32-s3-networking-lab
+</a>
+<p>以下正文为中文复盘，按「为什么 → 环境 → 逐层实现 → 问题与解决 → 后续计划」展开。</p>
+<h2 id="1-为什么开始接触-esp32-s3">1. 为什么开始接触 ESP32-S3</h2>
+<p>我的日常工作在云端：云商业平台的后端服务，通过 HTTPS API 与 POS、自助终端等设备端系统集成。设备那头的世界对我来说一直是一个「接口之后」的黑盒——串口、GPIO、固件、单总线协议，这些词在接口文档里出现过，但我没有亲手碰过。</p>
+<p>参加 MachineCat 黑客松时，机器人硬件是队友带来的现成套件，我负责软件栈，通过它暴露的 HTTP / WebSocket / Bluetooth 接口去驱动。这让我意识到：我擅长接口之上的部分，但对接口之下的部分缺乏第一手体感。</p>
+<p>所以这次实验的目的很明确：</p>
+<ol>
+<li><strong>补齐设备侧的体感</strong>：亲手做 GPIO、传感器时序、Wi-Fi 配网这些「接口之下」的事；</li>
+<li><strong>验证完整链路</strong>：不是单个点灯 Demo，而是从传感器到后端服务的一条完整数据通路；</li>
+<li><strong>反哺云端工作</strong>：理解设备端的约束（阻塞、内存、时序）之后，再设计设备对接 API 时会更有判断。</li>
+</ol>
+<p>我的目标不是转型嵌入式工程师，而是把「IoT 云端服务」这一层经验补上设备侧的另一半视角。</p>
+<h2 id="2-开发板和开发环境">2. 开发板和开发环境</h2>
+<h3 id="硬件">硬件</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>项目</th><th>信息</th></tr></thead><tbody><tr><td>开发板</td><td>ESP32-S3-DevKitC-1</td></tr><tr><td>模组</td><td>ESP32-S3-WROOM-1-N16R8</td></tr><tr><td>芯片</td><td>ESP32-S3，Xtensa LX7 双核</td></tr><tr><td>Flash / PSRAM</td><td>16 MB Flash + 8 MB OPI PSRAM</td></tr><tr><td>USB 转串口</td><td>WCH CH9102</td></tr><tr><td>LED</td><td>WS2812（GRB），GPIO48</td></tr><tr><td>触摸引脚</td><td>GPIO4（TOUCH4）</td></tr><tr><td>温度传感器</td><td>DHT11，数据脚 GPIO15</td></tr></tbody></table>
+<h3 id="软件">软件</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>组件</th><th>版本/配置</th></tr></thead><tbody><tr><td>PlatformIO 平台包</td><td><code>espressif32</code> <code>3.20017.241212</code></td></tr><tr><td>Arduino Core</td><td>2.0.17（对应 ESP-IDF 4.4.7）</td></tr><tr><td>NAPT SDK</td><td><code>esp32-arduino-lib-builder</code>（release/v4.4）本地重编替换</td></tr><tr><td>SDK 构建工具</td><td>Python 3.11 + <code>xtensa-esp32s3-elf-gcc</code> 8.4.0</td></tr><tr><td>LED 库</td><td>Adafruit NeoPixel 1.15.5</td></tr><tr><td>Go 服务</td><td>Go 1.25.4，<code>paho.mqtt.golang</code> v1.5.1</td></tr><tr><td>MQTT Broker</td><td>EMQX（TCP 1883）</td></tr></tbody></table>
+<p>这里有个一开始就踩的版本坑：PlatformIO 平台包版本号 <code>3.20017.241212</code> 里开头的 <code>3</code> 是 PlatformIO 框架的 major 版本，真正的 Arduino 核心版本是 <code>20017</code> = <strong>2.0.17</strong>。这个误读让我先白构建了一份 IDF 5.3 的 SDK（后面细说）。</p>
+<p>仓库分三个入口：</p>
+<ul>
+<li><code>arduino/</code>：主组合固件（LED、触摸、DHT11、Wi-Fi、Web、MQTT 同一个程序里运行）</li>
+<li><code>idf/</code>：独立 ESP-IDF 实验（RMT 驱动 WS2812，更底层的练习）</li>
+<li><code>server/</code>：Go 后端，通过 MQTT Broker 与设备通信并提供 Web 控制台</li>
+</ul>
+<h2 id="3-gpio呼吸灯和触摸唤醒">3. GPIO：呼吸灯和触摸唤醒</h2>
+<p>这是最外层的「hello world」，但我没有停在点灯。</p>
+<p><strong>WS2812 呼吸灯</strong>：GPIO48 上驱动一颗 WS2812（GRB 时序），做了 <code>breath / solid / off</code> 三态状态机——呼吸模式按周期插值亮度，固定色直接设置，熄灭清零。状态切换可以来自网页、MQTT 命令、触摸或串口，全部收敛到同一个状态机，避免多入口互相覆盖。</p>
+<p><strong>电容触摸</strong>：GPIO4（TOUCH4）实现触摸触发 LED 状态切换。自己写了完整检测逻辑：</p>
+<ul>
+<li><strong>基线校准</strong>：上电时采样若干次取基线，适配不同环境下的电容本底；</li>
+<li><strong>阈值判断</strong>：读数偏离基线超过阈值判定为「按下」；</li>
+<li><strong>去抖 + 边沿检测</strong>：只有「释放→按下」的下降沿才算一次有效触发，避免长按被识别成连续多次。</li>
+</ul>
+<p><strong>DHT11 温湿度</strong>：这是 GPIO 层最有价值的部分。没有引入第三方 DHT 库，<strong>自己实现了单总线时序</strong>：主机拉低起始信号 → 等待传感器响应 → 逐位读取 40 bit（湿度 16 + 温度 16 + 校验和 8）→ 校验和验证。做的时候对「传感器数据的每一位都是靠微秒级延时数出来的」这件事有了非常具体的体感——这正是云端视角里永远看不到的部分。</p>
+<h2 id="4-wi-fi扫描配置和-ap-模式">4. Wi-Fi：扫描、配置和 AP 模式</h2>
+<p>Wi-Fi 层实现了完整的生命周期管理：</p>
+<ul>
+<li><strong>STA 连接</strong>：配置保存在 SPIFFS 的 <code>/wifi.json</code>，重启后自动按已存配置连接；</li>
+<li><strong>扫描</strong>：<code>WiFi.scanNetworks()</code> 是阻塞操作（1~3 秒），我把它收敛到驱动层：<code>scanBegin()</code> 加锁扫描并缓存结果，网页和串口命令都读缓存，阻塞只影响调用方自己的任务；</li>
+<li><strong>AP 配网模式</strong>：没有已存配置时自动开启热点 <code>ESP32-W</code>，提供 <code>http://192.168.4.1</code> 配网页面——扫描列表选网、输密码、保存连接，成功后自动跳到 LED 控制页；</li>
+<li><strong>SmartConfig（ESP-Touch）</strong>：配网页、串口命令和 HTTP API 三个入口都能触发，手机 App 广播配网（必须在 2.4G 频段），60 秒超时自动回退 AP 模式。</li>
+</ul>
+<p>这个阶段的收获是：<strong>「配网」不是一个功能，而是一套状态机</strong>——已存配置 / 内置回退 / AP 模式 / SmartConfig 进行中，各种状态之间的转换和超时回退比连接本身更费心思。</p>
+<h2 id="5-napt设备网络转发实践">5. NAPT：设备网络转发实践</h2>
+<p>NAPT 是这个实验最初的动机：让设备接入 Wi-Fi 后，把自己开的 AP 热点下面的下游设备的流量做网络地址转换，转发到上行网络——一个透明代理 / 流量转发节点。</p>
+<p>踩的坑也最多，因为<strong>官方 SDK 不带 NAPT</strong>：</p>
+<ol>
+<li>PlatformIO 自带的 Arduino 核心 2.0.17 对应 ESP-IDF 4.4.7，其预编译 SDK 没有 <code>CONFIG_LWIP_NAPT</code>；</li>
+<li>只能用 Espressif 官方的 <code>esp32-arduino-lib-builder</code>，在 <code>release/v4.4</code> 分支上本地重新编译一份带 NAPT 的 SDK；</li>
+<li>编译时打开 <code>CONFIG_LWIP_NAPT=y</code>，产物按 PlatformIO 期望的 <code>tools/sdk/</code> 结构替换进去。</li>
+</ol>
+<p>最后在板上验证通过：设备 STA 连接上行 Wi-Fi，AP 热点下游设备把设备当网关，流量经 NAPT 转发出去。启动日志里 <code>[napt] enabled on AP</code> 就是这条链路活着的证据。</p>
+<p>这次「为了一个编译开关重编整个 SDK」的经历，让我对「SDK 里每个能力都是被编译选项裁剪出来的」有了具体的认识——这也解释了为什么不同厂商设备的 API 能力差异那么大。</p>
+<h2 id="6-web-server设备配置入口">6. Web Server：设备配置入口</h2>
+<p>设备内置 HTTP 服务（端口 80），同时服务 AP 和局域网两个接口：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>场景</th><th>访问 <code>/</code> 看到的</th></tr></thead><tbody><tr><td>未连接 Wi-Fi</td><td>配网页（扫描选网 + SmartConfig 入口）</td></tr><tr><td>已连接</td><td>LED 控制页 + Wi-Fi 设置面板（状态/SSID/信号/IP，可改配、清除配置回配网模式）</td></tr></tbody></table>
+<p>主要 API：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>GET  /api/wifi             Wi-Fi 状态（state/ssid/ip/rssi/...）</span></span>
+<span class="line"><span>POST /api/wifi             保存配置并连接</span></span>
+<span class="line"><span>GET  /api/wifi/scan        扫描网络（读驱动缓存）</span></span>
+<span class="line"><span>POST /api/wifi/smartconfig 启动 ESP-Touch 监听</span></span>
+<span class="line"><span>POST /api/wifi/reset       清除配置，回到 AP 配网模式</span></span>
+<span class="line"><span>POST /api/led              LED 控制</span></span></code></pre>
+<p>作为平时写后端 API 的人，做这个嵌入式 Web 服务最大的不同是<strong>资源约束</strong>：不能随手开连接池、不能无脑加缓存，阻塞操作（扫描、MQTT 读写）必须想清楚跑在哪个任务里、会不会把别的接口饿死。</p>
+<h2 id="7-mqtt温度传感器数据上报">7. MQTT：温度传感器数据上报</h2>
+<p>这是整个实验的重点：一条从传感器到后端的完整数据链路。</p>
+<h3 id="71-自实现-mqtt-311-客户端">7.1 自实现 MQTT 3.1.1 客户端</h3>
+<p>设备端没有用 PubSubClient，而是<strong>直接基于 <code>WiFiClient</code> 实现了 MQTT 3.1.1 协议</strong>：CONNECT / SUBSCRIBE / PUBLISH 报文的组包与解析、QoS0/1、keepalive、断线自动重连。做协议层的目的很功利——想知道「MQTT 客户端库」这层抽象下面到底是什么，以及连接管理、重连退避这些工程细节在资源受限设备上怎么处理。</p>
+<h3 id="72-数据链路">7.2 数据链路</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>Temperature Sensor ──▶ ESP32-S3 ──▶ MQTT Broker ──▶ Backend Service</span></span>
+<span class="line"><span>   DHT11 读取温度       采集并组织 MQTT 消息   发布与接收       订阅并接收温度数据</span></span></code></pre>
+<ul>
+<li><strong>Temperature Sensor</strong>：DHT11 在独立任务里每 2 秒采样一次温湿度并缓存；</li>
+<li><strong>ESP32-S3</strong>：每 10 秒把传感器数据 + Wi-Fi 状态 + LED 状态 + 堆内存组织成 JSON，发布到 <code>esp32/device/status</code>（QoS1）；LED 状态变化时还会即时上报，不只是周期心跳；</li>
+<li><strong>MQTT Broker</strong>：EMQX 监听 1883，负责消息路由；真实地址和凭据不进仓库；</li>
+<li><strong>Backend Service</strong>：Go 服务订阅 <code>esp32/device/status</code>，把状态与温度数据写 JSONL 落盘，并通过 Web / SSE 实时展示。</li>
+</ul>
+<p>上报消息长这样：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span><span style="color:#79B8FF">"wifi"</span><span style="color:#E1E4E8">:</span><span style="color:#9ECBFF">"connected"</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"ssid"</span><span style="color:#E1E4E8">:</span><span style="color:#9ECBFF">"&#x3C;WIFI_SSID>"</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"ip"</span><span style="color:#E1E4E8">:</span><span style="color:#9ECBFF">"&#x3C;DEVICE_IP>"</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"rssi"</span><span style="color:#E1E4E8">:</span><span style="color:#79B8FF">-56</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF"> "uptime"</span><span style="color:#E1E4E8">:</span><span style="color:#79B8FF">110</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"heap"</span><span style="color:#E1E4E8">:</span><span style="color:#79B8FF">281384</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"led_mode"</span><span style="color:#E1E4E8">:</span><span style="color:#9ECBFF">"solid"</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"led_color"</span><span style="color:#E1E4E8">:</span><span style="color:#9ECBFF">"ff0000"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF"> "led_bright"</span><span style="color:#E1E4E8">:</span><span style="color:#79B8FF">100</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"led_speed"</span><span style="color:#E1E4E8">:</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"temperature"</span><span style="color:#E1E4E8">:</span><span style="color:#79B8FF">26</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"humidity"</span><span style="color:#E1E4E8">:</span><span style="color:#79B8FF">60</span><span style="color:#E1E4E8">}</span></span></code></pre>
+<h3 id="73-命令下发反向链路">7.3 命令下发（反向链路）</h3>
+<p>反向链路同样可用：Go 服务 / <code>mosquitto_pub</code> 向 <code>esp32/device/cmd</code>（QoS1）发布纯文本命令，设备执行后即时回报状态：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">mosquitto_pub</span><span style="color:#79B8FF"> -h</span><span style="color:#F97583"> &#x3C;</span><span style="color:#9ECBFF">BROKER_HOS</span><span style="color:#E1E4E8">T</span><span style="color:#F97583">></span><span style="color:#79B8FF"> -t</span><span style="color:#9ECBFF"> 'esp32/device/cmd'</span><span style="color:#79B8FF"> -m</span><span style="color:#9ECBFF"> 'led:color:00ff00'</span></span>
+<span class="line"><span style="color:#B392F0">mosquitto_pub</span><span style="color:#79B8FF"> -h</span><span style="color:#F97583"> &#x3C;</span><span style="color:#9ECBFF">BROKER_HOS</span><span style="color:#E1E4E8">T</span><span style="color:#F97583">></span><span style="color:#79B8FF"> -t</span><span style="color:#9ECBFF"> 'esp32/device/cmd'</span><span style="color:#79B8FF"> -m</span><span style="color:#9ECBFF"> 'ping'</span><span style="color:#6A737D">   # 设备回 {"pong":1}</span></span></code></pre>
+<p>支持 <code>led:on/off/color/bright/breath/speed</code>、<code>wifi:status</code>、<code>ping</code>、<code>restart</code>。这条「云端发指令 → 设备执行 → 状态即时回传」的闭环，和我日常工作里设备对接业务的模型完全同构——只不过这次两端都是我亲手写的。</p>
+<h3 id="74-go-后端服务">7.4 Go 后端服务</h3>
+<p><code>server/</code> 按分层结构写：<code>config</code> 读 YAML、<code>infrastructure/mqttclient</code> 连 Broker、<code>adapter</code> 做消息转换、<code>application</code> 管状态流、<code>interfaces/http</code> 提供 Web 页面和 API。Web 控制台默认 <code>18081</code> 端口，可以实时看到设备状态和温度曲线，也能反向下发命令。</p>
+<h3 id="75-组合运行freertos-多任务">7.5 组合运行：FreeRTOS 多任务</h3>
+<p>所有功能不是串在 <code>loop()</code> 里的，而是 6 个 FreeRTOS 任务按双核分工：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>任务</th><th>核心</th><th>周期</th><th>职责</th></tr></thead><tbody><tr><td><code>wifiTask</code></td><td>0</td><td>10ms</td><td>Wi-Fi 驱动、配网轮询、状态事件</td></tr><tr><td><code>mqttTask</code></td><td>0</td><td>10ms</td><td>MQTT 收发、状态上报、命令处理</td></tr><tr><td><code>webTask</code></td><td>0</td><td>5ms</td><td>HTTP 请求处理</td></tr><tr><td><code>ledTask</code></td><td>1</td><td>20ms</td><td>LED 状态机、触摸采样</td></tr><tr><td><code>consoleTask</code></td><td>1</td><td>5ms</td><td>串口命令</td></tr><tr><td><code>dhtTask</code></td><td>1</td><td>2s</td><td>DHT11 采样并缓存</td></tr></tbody></table>
+<p>任务间通过队列式事件总线解耦：webTask 下发 LED 命令只入队，MQTT 上报由 mqttTask 在自己的上下文完成，避免跨任务 I/O；共享资源（SPIFFS、Wi-Fi 驱动、MQTT 客户端、配网状态）全部加互斥锁，锁顺序固定防止死锁。</p>
+<p>代码组织上用了接口注入（<code>ILedDriver</code> / <code>IWifiDriver</code> / <code>IMqttClient</code> / <code>IFileSystem</code> / <code>IConsole</code>）、Pimpl 隐藏第三方库、工厂统一创建驱动——本质上是把我在后端积累的分层习惯搬到了固件里。</p>
+<h2 id="8-遇到的问题和解决过程">8. 遇到的问题和解决过程</h2>
+<p>完整的踩坑记录在仓库 <a href="https://github.com/AzureWynn/esp32-s3-networking-lab/blob/main/doc/04-%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95.md">doc/04-踩坑记录.md</a> 里，挑五个代表性的：</p>
+<p><strong>① 选错 SDK 分支，白构建了一份 IDF 5.3 SDK</strong>
+现象：花大量时间构建出 5.3 的 SDK，但固件根本用不上。
+原因：<code>espressif32</code> 平台包号 <code>3.20017.241212</code> 开头的 <code>3</code> 是 PlatformIO 框架 major 版本，<code>20017</code> 才是 Arduino 核心 2.0.17，实际对应 IDF 4.4.7。
+解决：确认版本矩阵后用 <code>release/v4.4</code> 分支重新构建。教训：<strong>工具链版本号要先读文档确认语义，不要按直觉猜</strong>。</p>
+<p><strong>② 代理与镜像导致构建环境不可用</strong>
+现象：<code>git clone</code> / <code>curl</code> / pip 全部卡死，pip 卡在 “Fetching project description” 不动。
+原因：本机代理环境变量对 GitHub / dl.espressif / PyPI 不生效；pypi.org 在当前网络不可达。
+解决：构建前 <code>unset http_proxy https_proxy ...</code>；pip 换 <code>PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/</code>。教训：构建脚本长时间挂起时，<strong>不要用管道看输出</strong>，落盘到日志文件再查。</p>
+<p><strong>③ 大仓库 clone 反复断流</strong>
+现象：esp-idf（>2GB）、arduino-esp32（>1GB）等仓库反复 early EOF。
+解决：浅克隆 <code>--depth 1 -b &#x3C;branch></code>；固定 commit 用 <code>git fetch --depth 1 origin &#x3C;sha></code>；实在不行用 codeload tarball 走 HTTP。<code>esp_wifi/lib</code>、<code>esp_phy/lib</code> 两个 100MB+ 的预编译 blob 子模块是重灾区，手动下载解压绕过。</p>
+<p><strong>④ 官方 SDK 没有 NAPT</strong>
+现象：代码调用 NAPT 相关能力编译不过。
+原因：Arduino Core 2.0.17 配套的预编译 SDK 未开启 <code>CONFIG_LWIP_NAPT</code>。
+解决：<code>esp32-arduino-lib-builder</code>（release/v4.4）本地重编带 NAPT 的 SDK，按 PlatformIO 期望的产物结构替换。注意 lib-builder 的产物和 pio 官方平台的 builder 脚本不通用，不能整目录乱覆盖。</p>
+<p><strong>⑤ SPIFFS 配置”改了不生效”</strong>
+现象：改了 <code>data/mqtt.json</code> 的 Broker 地址，设备还是连旧地址。
+原因：配置文件烧在 SPIFFS 分区，只执行编译烧录固件不会更新它。
+解决：改配置后必须 <code>pio run -t uploadfs</code>。教训：<strong>分区表里不同区域的数据有不同的更新路径</strong>，这和云端「改配置要区分热更新还是重新部署」是同一类问题。</p>
+<h2 id="9-代码仓库和后续计划">9. 代码仓库和后续计划</h2>
+<p>完整代码与开发文档：</p>
+<a href="https://github.com/AzureWynn/esp32-s3-networking-lab" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 no-underline hover:no-underline bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+esp32-s3-networking-lab
+</a>
+<ul>
+<li><code>arduino/</code> — 组合固件（本篇主体），<code>doc/02~08</code> 是构建、SDK 替换、踩坑、刷写、配网、MQTT、多任务的原始过程记录</li>
+<li><code>idf/</code> — 独立 ESP-IDF 实验（RMT 驱动 WS2812 + SPIFFS + 串口控制台）</li>
+<li><code>server/</code> — Go 后端（订阅状态、JSONL 落盘、Web/SSE 展示、命令下发）</li>
+</ul>
+<p>仓库里 Wi-Fi、MQTT 凭据与 Broker 地址全部为占位符，截图做了脱敏处理。</p>
+<p><strong>后续计划</strong>（按优先级）：</p>
+<ol>
+<li><strong>MQTT over TLS</strong>：目前是 TCP 明文 + 可选凭据，下一步换 8883 端口做证书校验——这正好能复用我做 Webhook 验签时的证书链知识；</li>
+<li><strong>OTA 升级</strong>：固件远程更新，配合 MQTT 命令通道做成「服务端推送版本 → 设备分批升级」的模型；</li>
+<li><strong>传感器扩展</strong>：DHT11 精度有限，换 SHT3x（I²C）对比两种总线协议的实现差异；</li>
+<li><strong>更底层的 IDF 练习</strong>：<code>idf/</code> 工程继续深入 RMT、中断、双核调度，而不是停留在 Arduino 封装层；</li>
+<li><strong>云端反哺</strong>：把设备端学到的约束（内存、阻塞、弱网）沉淀成设备对接 API 设计 checklist。</li>
+</ol>
+<p>这次实验最直接的价值，是让我在「云后端 ↔ 设备集成」这条自己最熟悉的职业主线上，第一次同时握住了两端。</p> </div> <footer class="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 max-w-3xl mx-auto"> <div class="flex justify-between items-center"> <a href="/posts" class="text-blue-600 dark:text-blue-400 hover:underline">&larr; Back to Blog Posts</a> </div> </footer> </article>  <div class="mt-16"> <h2 class="text-2xl font-bold mb-6">Comments</h2> <script src="https://giscus.app/client.js" data-repo="AzureWynn/AzureWynn.github.io" data-repo-id="R_kgDOJ7oLUA" data-category="General" data-category-id="DIC_kwDOJ7oLUM4CXeU9" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="preferred_color_scheme" data-lang="en" crossorigin="anonymous" async>
+    </script> </div>  </main> <footer class="py-4 border-t border-gray-200 dark:border-gray-700 mt-auto"> <div class="container mx-auto px-4 max-w-6xl text-center text-gray-600 dark:text-gray-400 text-sm"> <p class="mb-2"> <a href="/timeline" class="hover:text-blue-600 dark:hover:text-blue-400">Timeline</a> <span class="mx-2">·</span> <a href="/search" class="hover:text-blue-600 dark:hover:text-blue-400">Search</a> <span class="mx-2">·</span> <a href="/tags" class="hover:text-blue-600 dark:hover:text-blue-400">Tags</a> </p> <p>© 2026 A.W. — Backend Engineer. All rights reserved.</p> </div> </footer> <!-- External links open in new window; internal navigation stays in current tab --> <script type="module">(function(){const d=document.getElementById("theme-toggle"),e=document.getElementById("theme-icon-sun"),t=document.getElementById("theme-icon-moon");(localStorage.getItem("theme")||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"))==="dark"?(document.documentElement.classList.add("dark"),e.classList.remove("hidden"),t.classList.add("hidden")):(document.documentElement.classList.remove("dark"),e.classList.add("hidden"),t.classList.remove("hidden")),d.addEventListener("click",function(){document.documentElement.classList.contains("dark")?(document.documentElement.classList.remove("dark"),localStorage.setItem("theme","light"),e.classList.add("hidden"),t.classList.remove("hidden")):(document.documentElement.classList.add("dark"),localStorage.setItem("theme","dark"),e.classList.remove("hidden"),t.classList.add("hidden"))})})();</script> <!-- Theme Toggle Script --> <script type="module">document.addEventListener("DOMContentLoaded",()=>{const r=window.location.origin;document.querySelectorAll("a[href]").forEach(t=>{const e=t.getAttribute("href")||"";if(e.startsWith("http://")||e.startsWith("https://"))try{new URL(e).origin!==r&&(t.setAttribute("target","_blank"),t.setAttribute("rel","noopener noreferrer"))}catch{}})});</script> </body> </html>
